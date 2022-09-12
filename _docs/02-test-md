@@ -1,0 +1,42 @@
+# Running tests
+
+tldr; this is the preferred way to execute
+
+`python -m unittest discover tests`
+
+-- OR --
+
+`coverage run --source="./app,tests" -m unittest discover tests`
+
+Then
+
+`coverage html`
+
+
+## Syntax reference (assuming running from `D:\src\github\proj\`)
+
+1.  Run all tests; Not ideal because this will also trigger `flask_app.py`
+`python -m unittest discover`
+`python -m unittest` (this is same as above)
+
+2.  Run all tests in selected directory; this is the preferred approach
+`python -m unittest discover <test_directory>`
+
+3.  Run all tests in selected directory that match specified filename pattern
+`python -m unittest discover -s <directory> -p '*_test.py'`
+
+## Running coverage
+
+Use this to discover uncovered files.
+
+`coverage run --source="./forum_app,tests" -m unittest discover tests`
+
+Use this to only calculate coverage for tested files.
+
+`coverage run -m unittest discover tests `
+
+Then use one of the following to generate a report.
+
+ `coverage report`
+-- OR --
+`coverage html`
