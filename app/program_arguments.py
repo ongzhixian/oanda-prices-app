@@ -9,33 +9,18 @@ from logger import Logger
 log = Logger()
 
 def get_argument_parser():
-    # Setup ArgumentParser; # Program should take 3 arguments: .cloud-amqp.json .mysql.json output-path
+    """
+    Parses for the following arguments:
+    1.  cloud-amqp-config
+    2.  database-config
+    3.  oanda-config
+    4.  output-path
+    """
     parser = argparse.ArgumentParser()
-    # parser.add_argument("command", help="echo the string you use here")
-    # parser.add_argument("-c", "--command", choices=[
-    #     'dump-oanda', 
-    #     'grab-sgx', 'dbg-sgx',
-    #     'test'
-    #     ], help="Some operation command")
-    # parser.add_argument("-a", "--arguments", help="Some arguments to complement command")
-    # parser.add_argument("-v", "--verbosity", type=int, help="increase output verbosity")
-    # parser.add_argument("-v", "--verbosity", type=int, choices=[0, 1, 2], help="increase output verbosity")
-    # parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
-    # parser.add_argument("echo", help="echo the string you use here")
-    # parser.add_argument("square", help="display a square of a given number", type=int)
-    
-    # Arguments we need:
-    # output-path
-    # cloud-amqp-config
-    # database-config
-    # Required arguments
     parser.add_argument("cloud-amqp-config", help="Location to cloud AMQP configuration (json) file")
     parser.add_argument("database-config", help="Location to database configuration (json) file")
+    parser.add_argument("oanda-config", help="Location to oanda configuration (json) file")
     parser.add_argument("save-path", help="Folder location to save downloaded files")
-    # Parameters starting with - or -- are usually considered optional; although this can be circumvent by adding required attribute
-    # parser.add_argument("-s", "--save-path", help="Folder location to save downloaded files", required=True)
-    # parser.add_argument("-a", "--cloud-amqp-config", help="Location to cloud AMQP configuration (json) file")
-    # parser.add_argument("-d", "--database-config", help="Location to database configuration (json) file")
     return parser
 
 def get_amqp_url_parameters(config_file_path):
@@ -65,6 +50,7 @@ def get_amqp_url_parameters(config_file_path):
     
     return pika.URLParameters(cloud_amqp_url)
 
+
 def get_database_settings(config_file_path):
     
     full_path = path.abspath(config_file_path)
@@ -77,6 +63,32 @@ def get_database_settings(config_file_path):
         mysql_settings = json.loads(in_file.read())
 
     return mysql_settings
+
+def get_oanda_settings(config_file_path):
+            
+    full_path = path.abspath(config_file_path)
+    
+    if not path.exists(full_path):
+        log.error(f"Path {full_path} does not exists.")
+        exit(2)
+    
+    try:
+        with open(full_path, "r", encoding="utf-8") as in_file:
+            json_data = json.load(in_file)
+    except Exception as e:
+        log.error(e)
+        exit(3)
+
+    expected_keys = [ 'account_number', 'api_key', 'rest_api_url', 'streaming_api_url' ]
+    has_unexpected_key = False in [ json_data_key in expected_keys for json_data_key in json_data.keys() ]
+    
+    if has_unexpected_key:
+        log.error(f"Config file does not proper structure; should have {expected_keys}")
+        exit(4)
+
+    log.info("Oanda settings read", source="program", event="set", target="oanda settings")
+    
+    return json_data
 
 def get_save_file_full_path(directory_path):
 
@@ -97,10 +109,9 @@ def get_settings_from_arguments():
     args = vars(parser.parse_args())
     cloud_amqp_config_file_path = args['cloud-amqp-config']
     database_config_file_path = args['database-config']
+    oanda_config_file_path = args['oanda-config']
     save_file_directory = args['save-path']
-    # print(cloud_amqp_config_file_path)
-    # print(database_config_file_path)
-    # print(save_file_directory)
     return (get_amqp_url_parameters(cloud_amqp_config_file_path),
         get_database_settings(database_config_file_path),
+        get_oanda_settings(oanda_config_file_path),
         get_save_file_full_path(save_file_directory))
