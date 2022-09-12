@@ -20,7 +20,7 @@ class OandaApi(object):
             'Authorization': f"Bearer {self.api_key}",
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0'
         }
-        required_sub_directories = [ 'instruments' ]
+        required_sub_directories = [ 'instruments', 'historical-candles' ]
         for sub_directory in required_sub_directories:
             directory_path = path.join(self.output_path, sub_directory)
             full_path = path.abspath(directory_path)
@@ -32,9 +32,9 @@ class OandaApi(object):
                     exit(2)
 
 
-    def save_data_to_file(self, data):
+    def save_instruments_json_data_to_file(self, data):
         FILE_DATETIME = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-        FILE_NAME = f'instruments-{FILE_DATETIME}.txt'
+        FILE_NAME = f'instrument-{FILE_DATETIME}.json'
         SAVE_FILE_PATH = path.join(self.output_path, 'instruments', FILE_NAME)
         with open(SAVE_FILE_PATH, 'w', encoding='utf-8') as out_file:
             out_file.write(data)
@@ -54,7 +54,7 @@ class OandaApi(object):
         
         with url_open(request) as response:
             response_data = response.read().decode("utf-8")
-            self.save_data_to_file(response_data)
+            self.save_instruments_json_data_to_file(response_data)
         try:
             response_json = json.loads(response_data)
             return response_json['instruments'] if 'instruments' in response_json else []
@@ -63,26 +63,56 @@ class OandaApi(object):
             return []
 
 
-    def get_latest_candles(self, candle_spec, account_id=None):
+    def get_latest_candles(self, candle_spec='EUR_USD:S10:BM', account_id=None):
+        """Not in use; this fetch just the latest candle for the given candle specification"""
         account_id = self.account_id if account_id is None else account_id
-        response = requests.get(
-                f"{self.api_url}/v3/accounts/{account_id}/candles/latest?candleSpecifications={candle_spec}", 
-                headers=self.headers)
-        response_json = response.json()
-        logging.debug(response_json)
+        url = f"{self.rest_api_url}/v3/accounts/{account_id}/candles/latest?candleSpecifications={candle_spec}"
         
-        normalized_candle_spec = candle_spec.replace(':','-')
-        self.dump_to_file(f'latest-candles-{normalized_candle_spec}.json', response_json)
-        return response_json
+        request = url_request(
+            url, 
+            data=None, 
+            headers=self.headers
+        )
+        with url_open(request) as response:
+            response_data = response.read().decode("utf-8")
+            log.debug(response_data)
+        try:
+            response_json = json.loads(response_data)
+            # normalized_candle_spec = candle_spec.replace(':','-')
+            # self.dump_to_file(f'latest-candles-{normalized_candle_spec}.json', response_json)
+            return response_json
+        except Exception as ex:
+            log.warn(f"Invalid response_json; {ex}")
+            return None
 
-    # def get_account_candles(self, instrument_name, granularity='D', account_id=None):
-    #     account_id = self.account_id if account_id is None else account_id
-    #     response = requests.get(
-    #             f"{self.api_url}/v3/accounts/{account_id}/instruments/{instrument_name}/candles?granularity={granularity}", 
-    #             headers=self.headers)
-    #     response_json = response.json()
-    #     # logging.debug(response_json)
+
+    def save_historical_candle_json_data_to_file(self, data):
+        FILE_DATETIME = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        FILE_NAME = f'historical-candle-{FILE_DATETIME}.json'
+        SAVE_FILE_PATH = path.join(self.output_path, 'historical-candles', FILE_NAME)
+        with open(SAVE_FILE_PATH, 'w', encoding='utf-8') as out_file:
+            out_file.write(data)        
+
+
+    def get_historical_candles(self, instrument_name):
+        granularity='D'
+        account_id = self.account_id
+        url = f"{self.rest_api_url}/v3/accounts/{account_id}/instruments/{instrument_name}/candles?granularity={granularity}"
+
+        request = url_request(
+            url, 
+            data=None, 
+            headers=self.headers
+        )
+
+        with url_open(request) as response:
+            response_data = response.read().decode("utf-8")
+            self.save_historical_candle_json_data_to_file(response_data)
+
+        try:
+            response_json = json.loads(response_data)
+            return response_json
+        except Exception as ex:
+            log.warn(f"Invalid response_json; {ex}")
+            return None
         
-    #     # normalized_candle_spec = candle_spec.replace(':','-')
-    #     self.dump_to_file(f'account-candles-{instrument_name}-{granularity}.json', response_json)
-    #     return response_json
