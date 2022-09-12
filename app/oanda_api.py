@@ -86,9 +86,9 @@ class OandaApi(object):
             return None
 
 
-    def save_historical_candle_json_data_to_file(self, data):
+    def save_historical_candle_json_data_to_file(self, data, instrument_name):
         FILE_DATETIME = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-        FILE_NAME = f'historical-candle-{FILE_DATETIME}.json'
+        FILE_NAME = f'historical-candle-{instrument_name}-{FILE_DATETIME}.json'
         SAVE_FILE_PATH = path.join(self.output_path, 'historical-candles', FILE_NAME)
         with open(SAVE_FILE_PATH, 'w', encoding='utf-8') as out_file:
             out_file.write(data)        
@@ -107,7 +107,7 @@ class OandaApi(object):
 
         with url_open(request) as response:
             response_data = response.read().decode("utf-8")
-            self.save_historical_candle_json_data_to_file(response_data)
+            self.save_historical_candle_json_data_to_file(response_data, instrument_name)
 
         try:
             response_json = json.loads(response_data)

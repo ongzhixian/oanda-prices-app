@@ -40,7 +40,7 @@ def setup_rabbit_mq_for_output(channel):
     
     channel.queue_bind(
         exchange=EXCHANGE_NAME, 
-        routing_key=ROUTING_KEY,
+        routing_key=f"{ROUTING_KEY}.*",
         queue=OUT_QUEUE_NAME)
 
 def publish_prices_for_analysis(url_parameters, historical_candle_json, ticker):
@@ -51,7 +51,7 @@ def publish_prices_for_analysis(url_parameters, historical_candle_json, ticker):
 
         channel.basic_publish(
             exchange=EXCHANGE_NAME, 
-            routing_key=ROUTING_KEY, 
+            routing_key=f"{ROUTING_KEY}.{ticker}", 
             body=json.dumps(historical_candle_json),
             properties=pika.BasicProperties(
                 delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
