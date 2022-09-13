@@ -4,6 +4,7 @@ from datetime import datetime
 from os import path, makedirs
 from urllib.request import urlopen as url_open
 from urllib.request import Request as url_request
+import time
 
 from logger import Logger
 
@@ -116,3 +117,30 @@ class OandaApi(object):
             log.warn(f"Invalid response_json; {ex}")
             return None
         
+    def get_price_stream(self):
+        account_id = self.account_id
+        # curl \
+        # -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
+        # "https://stream-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/pricing/stream?instruments=EUR_USD%2CUSD_CAD"
+        candleSpecificationList = 'XAU_USD,EUR_USD'
+        url = f"{self.streaming_api_url}/v3/accounts/{account_id}/pricing/stream?instruments=XAU_USD"
+
+        stream_headers={
+            'Authorization': f"Bearer {self.api_key}",
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0',
+            'Content-Type': 'application/octet-stream'
+        }
+
+        request = url_request(
+            url, 
+            data=None, 
+            headers=stream_headers
+        )
+
+        with url_open(request) as response:
+            while (True):
+                binary_response_data = response.read1()
+                print(binary_response_data.decode("utf-8"))
+                time.sleep(.1)
+        
+            
