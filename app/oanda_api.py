@@ -21,7 +21,7 @@ class OandaApi(object):
             'Authorization': f"Bearer {self.api_key}",
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0'
         }
-        required_sub_directories = [ 'instruments', 'historical-candles' ]
+        required_sub_directories = [ 'instruments', 'historical-candles', 'position-books', 'order-books' ]
         for sub_directory in required_sub_directories:
             directory_path = path.join(self.output_path, sub_directory)
             full_path = path.abspath(directory_path)
@@ -95,6 +95,22 @@ class OandaApi(object):
             out_file.write(data)        
 
 
+    def save_position_book_json_data_to_file(self, data, instrument_name):
+        FILE_DATETIME = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        FILE_NAME = f'position-book-{instrument_name}-{FILE_DATETIME}.json'
+        SAVE_FILE_PATH = path.join(self.output_path, 'position-books', FILE_NAME)
+        with open(SAVE_FILE_PATH, 'w', encoding='utf-8') as out_file:
+            out_file.write(data)
+
+
+    def save_order_book_json_data_to_file(self, data, instrument_name):
+        FILE_DATETIME = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        FILE_NAME = f'order-book-{instrument_name}-{FILE_DATETIME}.json'
+        SAVE_FILE_PATH = path.join(self.output_path, 'order-books', FILE_NAME)
+        with open(SAVE_FILE_PATH, 'w', encoding='utf-8') as out_file:
+            out_file.write(data)
+
+
     def get_historical_candles(self, instrument_name):
         granularity='D'
         account_id = self.account_id
@@ -116,6 +132,44 @@ class OandaApi(object):
         except Exception as ex:
             log.warn(f"Invalid response_json; {ex}")
             return None
+
+    def get_position_book(self, instrument='XAU_USD'):
+        url = f"{self.rest_api_url}/v3/instruments/{instrument}/positionBook"
+        request = url_request(
+            url, 
+            data=None, 
+            headers=self.headers
+        )
+
+        with url_open(request) as response:
+            response_data = response.read().decode("utf-8")
+            self.save_position_book_json_data_to_file(response_data, instrument)
+
+        try:
+            response_json = json.loads(response_data)
+            return response_json
+        except Exception as ex:
+            log.warn(f"Invalid response_json; {ex}")
+            return None
+
+    def get_order_book(self, instrument='XAU_USD'):
+        url = f"{self.rest_api_url}/v3/instruments/{instrument}/orderBook"
+        request = url_request(
+            url, 
+            data=None, 
+            headers=self.headers
+        )
+
+        with url_open(request) as response:
+            response_data = response.read().decode("utf-8")
+            self.save_order_book_json_data_to_file(response_data, instrument)
+
+        try:
+            response_json = json.loads(response_data)
+            return response_json
+        except Exception as ex:
+            log.warn(f"Invalid response_json; {ex}")
+            return None
         
     def get_price_stream(self):
         account_id = self.account_id
@@ -123,7 +177,7 @@ class OandaApi(object):
         # -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
         # "https://stream-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/pricing/stream?instruments=EUR_USD%2CUSD_CAD"
         candleSpecificationList = 'XAU_USD,EUR_USD'
-        url = f"{self.streaming_api_url}/v3/accounts/{account_id}/pricing/stream?instruments=XAU_USD"
+        url = f"{self.streaming_api_url}/v3/accounts/{account_id}/pricing/stream?instruments=XAU_USD,EUR_USD"
 
         stream_headers={
             'Authorization': f"Bearer {self.api_key}",
