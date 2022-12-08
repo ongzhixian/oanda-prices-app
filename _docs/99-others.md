@@ -4,6 +4,7 @@ https://rapidapi.com/blog/best-stock-api/
 http://www.columbia.edu/~tmd2142/best-6-stock-market-apis-for-2020.html
 https://geekflare.com/best-stock-market-api/
 
+https://www.quantstart.com/articles/Forex-Trading-Diary-1-Automated-Forex-Trading-with-the-OANDA-API/
 
 Gemini
 Alpaca
