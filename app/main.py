@@ -98,5 +98,5 @@ if __name__ == "__main__":
     # listen_for_tickers(url_parameters)
     position_book = oanda_api.get_position_book()
     order_book = oanda_api.get_order_book()
-    # oanda_api.get_price_stream()
+    oanda_api.get_price_stream()
     log.info("Program complete", source="program", event="complete")

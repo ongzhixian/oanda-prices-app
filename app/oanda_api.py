@@ -111,10 +111,9 @@ class OandaApi(object):
             out_file.write(data)
 
 
-    def get_historical_candles(self, instrument_name):
-        granularity='D'
+    def get_historical_candles(self, instrument_name, granularity='D', price_component='BA'):
         account_id = self.account_id
-        url = f"{self.rest_api_url}/v3/accounts/{account_id}/instruments/{instrument_name}/candles?granularity={granularity}"
+        url = f"{self.rest_api_url}/v3/accounts/{account_id}/instruments/{instrument_name}/candles?granularity={granularity}&price={price_component}"
 
         request = url_request(
             url, 

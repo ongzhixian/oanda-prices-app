@@ -6,6 +6,9 @@ https://geekflare.com/best-stock-market-api/
 
 https://www.quantstart.com/articles/Forex-Trading-Diary-1-Automated-Forex-Trading-with-the-OANDA-API/
 
+
+https://www.oreilly.com/content/algorithmic-trading-in-less-than-100-lines-of-python-code/
+
 Gemini
 Alpaca
 Lemon
