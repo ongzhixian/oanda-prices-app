@@ -9,6 +9,10 @@ https://www.quantstart.com/articles/Forex-Trading-Diary-1-Automated-Forex-Tradin
 
 https://www.oreilly.com/content/algorithmic-trading-in-less-than-100-lines-of-python-code/
 
+
+https://investmentcache.com/magic-of-log-returns-concept-part-1/
+
+
 Gemini
 Alpaca
 Lemon
